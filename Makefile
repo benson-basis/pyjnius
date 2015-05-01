@@ -10,7 +10,7 @@ build_ext:
 
 clean:
 	$(ANT) clean
-	rm -rf build
+	rm -rf build jnius/config.pxi
 
 html:
 	$(MAKE) -C docs html
