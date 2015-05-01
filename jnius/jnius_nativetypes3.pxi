@@ -60,9 +60,6 @@ cdef class ByteArray:
         else:
             return False
 
-    def __getslice__(self, long i, long j):
-           return self._arr[i:j]
-
     def tolist(self):
         return list(self[:])
 

@@ -10,13 +10,13 @@ def cast(destclass, obj):
     jc.instanciate_from(jobj.j_self)
     return jc
 
-def find_javaclass(bytes name):
+def find_javaclass(namestr):
+    namestr = namestr.replace('.', '/')
+    cdef bytes name = str_for_c(namestr)
     from .reflect import Class
     cdef JavaClass cls
     cdef jclass jc
     cdef JNIEnv *j_env = get_jnienv()
-
-    name = name.replace('.', '/')
 
     jc = j_env[0].FindClass(j_env, name)
     if jc == NULL:

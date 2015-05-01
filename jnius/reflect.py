@@ -1,13 +1,14 @@
+from __future__ import absolute_import
+from future.utils import with_metaclass
 __all__ = ('autoclass', 'ensureclass')
 
-from jnius import (
+from .jnius import (
     JavaClass, MetaJavaClass, JavaMethod, JavaStaticMethod,
     JavaField, JavaStaticField, JavaMultipleMethod, find_javaclass
 )
 
 
-class Class(JavaClass):
-    __metaclass__ = MetaJavaClass
+class Class(with_metaclass(MetaJavaClass, JavaClass)):
     __javaclass__ = 'java/lang/Class'
 
     desiredAssertionStatus = JavaMethod('()Z')
@@ -49,16 +50,14 @@ class Class(JavaClass):
     toString = JavaMethod('()Ljava/lang/String;')
 
 
-class Object(JavaClass):
-    __metaclass__ = MetaJavaClass
+class Object(with_metaclass(MetaJavaClass, JavaClass)):
     __javaclass__ = 'java/lang/Object'
 
     getClass = JavaMethod('()Ljava/lang/Class;')
     hashCode = JavaMethod('()I')
 
 
-class Modifier(JavaClass):
-    __metaclass__ = MetaJavaClass
+class Modifier(with_metaclass(MetaJavaClass, JavaClass)):
     __javaclass__ = 'java/lang/reflect/Modifier'
 
     isAbstract = JavaStaticMethod('(I)Z')
@@ -75,8 +74,7 @@ class Modifier(JavaClass):
     isVolatile = JavaStaticMethod('(I)Z')
 
 
-class Method(JavaClass):
-    __metaclass__ = MetaJavaClass
+class Method(with_metaclass(MetaJavaClass, JavaClass)):
     __javaclass__ = 'java/lang/reflect/Method'
 
     getName = JavaMethod('()Ljava/lang/String;')
@@ -87,8 +85,7 @@ class Method(JavaClass):
     isVarArgs = JavaMethod('()Z')
 
 
-class Field(JavaClass):
-    __metaclass__ = MetaJavaClass
+class Field(with_metaclass(MetaJavaClass, JavaClass)):
     __javaclass__ = 'java/lang/reflect/Field'
 
     getName = JavaMethod('()Ljava/lang/String;')
@@ -97,8 +94,7 @@ class Field(JavaClass):
     getModifiers = JavaMethod('()I')
 
 
-class Constructor(JavaClass):
-    __metaclass__ = MetaJavaClass
+class Constructor(with_metaclass(MetaJavaClass, JavaClass)):
     __javaclass__ = 'java/lang/reflect/Constructor'
 
     toString = JavaMethod('()Ljava/lang/String;')

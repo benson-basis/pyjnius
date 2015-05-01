@@ -104,10 +104,11 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
                     j_env, argtype[1:], py_arg)
 
 
-cdef convert_jobject_to_python(JNIEnv *j_env, bytes definition, jobject j_object):
+cdef convert_jobject_to_python(JNIEnv *j_env, definitionstr, jobject j_object):
     # Convert a Java Object to a Python object, according to the definition.
     # If the definition is a java/lang/Object, then try to determine what is it
     # exactly.
+    cdef bytes definition = str_for_c(definitionstr)
     cdef char *c_str
     cdef bytes py_str
     cdef bytes r = definition[1:-1]

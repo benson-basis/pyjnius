@@ -1,3 +1,17 @@
+from cpython.version cimport PY_MAJOR_VERSION
+
+cdef str_for_c(s):
+     if PY_MAJOR_VERSION < 3:
+        return s
+     else:
+        return s.encode('utf-8')
+
+cdef items_compat(d):
+     if PY_MAJOR_VERSION >= 3:
+         return d.items()
+     else:
+        return d.iteritems()                
+
 cdef parse_definition(definition):
     # not a function, just a field
     if definition[0] != '(':

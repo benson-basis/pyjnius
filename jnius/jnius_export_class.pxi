@@ -1,4 +1,3 @@
-
 class JavaException(Exception):
     '''Can be a real java exception, or just an exception from the wrapper.
     '''
@@ -92,8 +91,9 @@ class MetaJavaClass(type):
                 raise JavaException('Unable to create the class'
                         ' {0}'.format(__javaclass__))
         else:
+            class_name = str_for_c(__javaclass__)
             jcs.j_cls = j_env[0].FindClass(j_env,
-                    <char *>__javaclass__)
+                    <char *>class_name)
             if jcs.j_cls == NULL:
                 raise JavaException('Unable to find the class'
                         ' {0}'.format(__javaclass__))
@@ -108,22 +108,22 @@ class MetaJavaClass(type):
         # search all the static JavaMethod within our class, and resolve them
         cdef JavaMethod jm
         cdef JavaMultipleMethod jmm
-        for name, value in classDict.iteritems():
+        for name, value in items_compat(classDict):
             if isinstance(value, JavaMethod):
                 jm = value
                 if not jm.is_static:
                     continue
                 jm.set_resolve_info(j_env, jcs.j_cls, None,
-                    name, __javaclass__)
+                    str_for_c(name), str_for_c(__javaclass__))
             elif isinstance(value, JavaMultipleMethod):
                 jmm = value
                 jmm.set_resolve_info(j_env, jcs.j_cls, None,
-                    name, __javaclass__)
+                    str_for_c(name), str_for_c(__javaclass__))
 
 
         # search all the static JavaField within our class, and resolve them
         cdef JavaField jf
-        for name, value in classDict.iteritems():
+        for name, value in items_compat(classDict):
             if not isinstance(value, JavaField):
                 continue
             jf = value
@@ -217,8 +217,9 @@ cdef class JavaClass(object):
                 populate_args(j_env, d_args, j_args, args_)
 
             # get the java constructor
+            defstr = str_for_c(definition)
             constructor = j_env[0].GetMethodID(
-                j_env, self.j_cls, '<init>', <char *><bytes>definition)
+                j_env, self.j_cls, '<init>', <char *><bytes>defstr)
             if constructor == NULL:
                 raise JavaException('Unable to found the constructor'
                         ' for {0}'.format(self.__javaclass__))
@@ -246,23 +247,23 @@ cdef class JavaClass(object):
         cdef JavaMethod jm
         cdef JavaMultipleMethod jmm
         cdef JNIEnv *j_env = get_jnienv()
-        for name, value in self.__class__.__dict__.iteritems():
+        for name, value in items_compat(self.__class__.__dict__):
             if isinstance(value, JavaMethod):
                 jm = value
                 if jm.is_static:
                     continue
                 jm.set_resolve_info(j_env, self.j_cls, self.j_self,
-                    name, self.__javaclass__)
+                    str_for_c(name), str_for_c(self.__javaclass__))
             elif isinstance(value, JavaMultipleMethod):
                 jmm = value
                 jmm.set_resolve_info(j_env, self.j_cls, self.j_self,
-                    name, self.__javaclass__)
+                    str_for_c(name), str_for_c(self.__javaclass__))
 
     cdef void resolve_fields(self) except *:
         # search all the JavaField within our class, and resolve them
         cdef JavaField jf
         cdef JNIEnv *j_env = get_jnienv()
-        for name, value in self.__class__.__dict__.iteritems():
+        for name, value in items_compat(self.__class__.__dict__):
             if not isinstance(value, JavaField):
                 continue
             jf = value
@@ -569,9 +570,10 @@ cdef class JavaMethod(object):
                     j_env, self.j_cls, <char *>self.name,
                     <char *>self.definition)
         else:
+            defstr = str_for_c(self.definition)
             self.j_method = j_env[0].GetMethodID(
                     j_env, self.j_cls, <char *>self.name,
-                    <char *>self.definition)
+                    <char *>defstr)
 
         if self.j_method == NULL:
             raise JavaException('Unable to find the method'
@@ -870,7 +872,7 @@ cdef class JavaMultipleMethod(object):
         else:
             methods = self.static_methods
 
-        for signature, jm in methods.iteritems():
+        for signature, jm in items_compat(methods):
             sign_ret, sign_args = jm.definition_return, jm.definition_args
             if jm.is_varargs:
                 args_ = args[:len(sign_args) - 1] + (args[len(sign_args) - 1:],)
