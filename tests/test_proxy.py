@@ -117,7 +117,7 @@ print('tries to get a ListIterator')
 iterator = a.listIterator()
 print('iterator is', iterator)
 while iterator.hasNext():
-    print('at index', iterator.index, 'value is', next(iterator))
+    print('at index', iterator.index, 'value is', iterator.next())
 
 print('3: Do cast to a collection')
 a2 = cast('java/util/Collection', a.j_self)
