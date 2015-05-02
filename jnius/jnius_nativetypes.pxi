@@ -1,3 +1,6 @@
+from cpython.version cimport PY_MAJOR_VERSION
+import types
+
 cdef python_op(int op, object a, object b):
     if op == 0:
         return a < b
@@ -12,6 +15,9 @@ cdef python_op(int op, object a, object b):
     elif op == 5:
         return a != b
 
+cdef ugh_getslice(self, long i, long j):
+    return self._arr[i:j]
+
 cdef class ByteArray:
     cdef LocalRef _jobject
     cdef long _size
@@ -22,6 +28,10 @@ cdef class ByteArray:
         self._size = 0
         self._buf = NULL
         self._arr = None
+
+    def __init__(self):
+        if PY_MAJOR_VERSION < 3:
+            self.__getslice__ = types.MethodType(ugh_getslice, self)
 
     def __dealloc__(self):
         cdef JNIEnv *j_env
@@ -47,8 +57,18 @@ cdef class ByteArray:
     def __len__(self):
         return self._size
 
-    def __getitem__(self, long index):
-        return self._arr[index]
+    def __getitem__(self, index):
+        cdef long xx
+        if isinstance(index, slice):
+            val = []
+            (start, stop, step) = index.indices(len(self._arr))
+            for x in range(start, stop, step):
+                xx = x
+                val.append(self._arr[xx])
+            return val
+        else:
+            xx = index
+            return self._arr[xx]
 
     def __richcmp__(self, other, op):
         cdef ByteArray b_other
@@ -59,9 +79,6 @@ cdef class ByteArray:
             return python_op(op, self.tostring(), other.tostring())
         else:
             return False
-
-    def __getslice__(self, long i, long j):
-           return self._arr[i:j]
 
     def tolist(self):
         return list(self[:])
