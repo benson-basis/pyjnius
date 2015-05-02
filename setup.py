@@ -1,5 +1,4 @@
-from __future__ import print_function
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 from os import environ
 from os.path import dirname, join, exists
 import sys
