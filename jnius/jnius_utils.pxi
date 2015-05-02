@@ -2,7 +2,10 @@ from cpython.version cimport PY_MAJOR_VERSION
 
 cdef str_for_c(s):
      if PY_MAJOR_VERSION < 3:
-        return s
+        if isinstance(s, unicode):
+            return s.encode('utf-8')
+        else:
+            return s
      else:
         return s.encode('utf-8')
 

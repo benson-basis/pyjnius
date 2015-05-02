@@ -111,7 +111,9 @@ else:
 with open(join(dirname(__file__), 'jnius', 'config.pxi'), 'w') as fd:
     fd.write('DEF JNIUS_PLATFORM = {0!r}\n\n'.format(platform))
     if sys.version_info>=(3,0,0):
-        fd.write('DEF JNIUS_PYTHON3 =True\n\n')
+        fd.write('DEF JNIUS_PYTHON3 = True\n\n')
+    else:
+        fd.write('DEF JNIUS_PYTHON3 = False\n\n')
     if lib_location is not None:
         fd.write('DEF JNIUS_LIB_SUFFIX = {0!r}\n\n'.format(lib_location))
 
