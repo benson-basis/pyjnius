@@ -128,7 +128,7 @@ cdef void _append_exception_trace_messages(
 
 cdef dict assignable_from = {}
 cdef int assignable_from_order = 0
-cdef void check_assignable_from(JNIEnv *env, JavaClass jc, bytes signature) except *:
+cdef void check_assignable_from(JNIEnv *env, JavaClass jc, signature) except *:
     global assignable_from_order
     cdef jclass cls, clsA, clsB
     cdef jthrowable exc
@@ -169,7 +169,7 @@ cdef void check_assignable_from(JNIEnv *env, JavaClass jc, bytes signature) exce
 
         # we got an object that doesn't match with the signature
         # check if we can use it.
-        cls = env[0].FindClass(env, signature)
+        cls = env[0].FindClass(env, str_for_c(signature))
         if cls == NULL:
             raise JavaException('Unable to found the class for {0!r}'.format(
                 signature))
@@ -191,12 +191,12 @@ cdef void check_assignable_from(JNIEnv *env, JavaClass jc, bytes signature) exce
             jc.__javaclass__, signature))
 
 
-cdef bytes lookup_java_object_name(JNIEnv *j_env, jobject j_obj):
+cdef lookup_java_object_name(JNIEnv *j_env, jobject j_obj):
     cdef jclass jcls = j_env[0].GetObjectClass(j_env, j_obj)
     cdef jclass jcls2 = j_env[0].GetObjectClass(j_env, jcls)
     cdef jmethodID jmeth = j_env[0].GetMethodID(j_env, jcls2, 'getName', '()Ljava/lang/String;')
     cdef jobject js = j_env[0].CallObjectMethod(j_env, jcls, jmeth)
-    name = convert_jobject_to_python(j_env, b'Ljava/lang/String;', js)
+    name = convert_jobject_to_python(j_env, 'Ljava/lang/String;', js)
     j_env[0].DeleteLocalRef(j_env, js)
     j_env[0].DeleteLocalRef(j_env, jcls)
     j_env[0].DeleteLocalRef(j_env, jcls2)
@@ -206,7 +206,6 @@ cdef bytes lookup_java_object_name(JNIEnv *j_env, jobject j_obj):
 cdef int calculate_score(sign_args, args, is_varargs=False) except *:
     cdef int index
     cdef int score = 0
-    cdef bytes r
     cdef JavaClass jc
 
     if len(args) != len(sign_args) and not is_varargs:

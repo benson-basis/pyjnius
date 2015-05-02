@@ -130,7 +130,7 @@ class MetaJavaClass(type):
             if not jf.is_static:
                 continue
             jf.set_resolve_info(j_env, jcs.j_cls,
-                name, __javaclass__)
+                str_for_c(name), str_for_c(__javaclass__))
 
 
 cdef class JavaClass(object):
@@ -284,10 +284,10 @@ cdef class JavaField(object):
     cdef jfieldID j_field
     cdef JNIEnv *j_env
     cdef jclass j_cls
-    cdef bytes definition
     cdef object is_static
-    cdef bytes name
-    cdef bytes classname
+    cdef name
+    cdef classname
+    cdef definition
 
     def __cinit__(self, definition, **kwargs):
         self.j_field = NULL
@@ -299,7 +299,7 @@ cdef class JavaField(object):
         self.is_static = kwargs.get('static', False)
 
     cdef void set_resolve_info(self, JNIEnv *j_env, jclass j_cls,
-            bytes name, bytes classname):
+            name, classname):
         j_env = get_jnienv()
         self.name = name
         self.classname = classname
@@ -310,13 +310,16 @@ cdef class JavaField(object):
         if self.j_field != NULL:
             return
         if self.is_static:
+            defstr = str_for_c(self.definition)
             self.j_field = j_env[0].GetStaticFieldID(
                     j_env, self.j_cls, <char *>self.name,
-                    <char *>self.definition)
+                    <char *>defstr)
         else:
+            defstr = str_for_c(self.definition)
+            namestr = str_for_c(self.name)
             self.j_field = j_env[0].GetFieldID(
-                    j_env, self.j_cls, <char *>self.name,
-                    <char *>self.definition)
+                    j_env, self.j_cls, <char *>namestr,
+                    <char *>defstr)
         if self.j_field == NULL:
             raise JavaException('Unable to found the field {0}'.format(self.name))
 
@@ -538,9 +541,9 @@ cdef class JavaMethod(object):
     cdef jmethodID j_method
     cdef jclass j_cls
     cdef LocalRef j_self
-    cdef bytes name
-    cdef bytes classname
-    cdef bytes definition
+    cdef name
+    cdef classname
+    cdef definition
     cdef object is_static
     cdef bint is_varargs
     cdef object definition_return
@@ -553,7 +556,7 @@ cdef class JavaMethod(object):
 
     def __init__(self, definition, **kwargs):
         super(JavaMethod, self).__init__()
-        self.definition = <bytes>definition
+        self.definition = definition
         self.definition_return, self.definition_args = \
                 parse_definition(definition)
         self.is_static = kwargs.get('static', False)
@@ -566,9 +569,10 @@ cdef class JavaMethod(object):
         if self.name is None:
             raise JavaException('Unable to find a None method!')
         if self.is_static:
+            defstr = str_for_c(self.definition)
             self.j_method = j_env[0].GetStaticMethodID(
                     j_env, self.j_cls, <char *>self.name,
-                    <char *>self.definition)
+                    <char *>defstr)
         else:
             defstr = str_for_c(self.definition)
             self.j_method = j_env[0].GetMethodID(
@@ -580,7 +584,7 @@ cdef class JavaMethod(object):
                     ' {0}({1})'.format(self.name, self.definition))
 
     cdef void set_resolve_info(self, JNIEnv *j_env, jclass j_cls,
-            LocalRef j_self, bytes name, bytes classname):
+            LocalRef j_self, name, classname):
         self.name = name
         self.classname = classname
         self.j_cls = j_cls

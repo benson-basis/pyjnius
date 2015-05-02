@@ -47,6 +47,7 @@ cdef class ByteArray:
     def __len__(self):
         return self._size
 
+    # TODO: py3 calls this with a slice from tolist below....
     def __getitem__(self, long index):
         return self._arr[index]
 
