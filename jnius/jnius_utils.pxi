@@ -276,7 +276,11 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
                 continue
 
             # if it's a string, accept any python string
-            if r == 'java/lang/String' and isinstance(arg, basestring):
+            if r == 'java/lang/String' and isinstance(arg, basestring) and PY_MAJOR_VERSION < 3:
+                score += 10
+                continue
+
+            if r == 'java/lang/String' and isinstance(arg, str) and PY_MAJOR_VERSION >= 3:
                 score += 10
                 continue
 
@@ -328,7 +332,15 @@ cdef int calculate_score(sign_args, args, is_varargs=False) except *:
                 score += 10
                 continue
 
-            if (r == '[B' or r == '[C') and isinstance(arg, basestring):
+            if (r == '[B' or r == '[C') and isinstance(arg, basestring) and PY_MAJOR_VERSION < 3:
+                score += 10
+                continue
+
+            if (r == '[B') and isinstance(arg, bytes) and PY_MAJOR_VERSION >= 3:
+                score += 10
+                continue
+
+            if (r == '[C') and isinstance(arg, str) and PY_MAJOR_VERSION >= 3:
                 score += 10
                 continue
 

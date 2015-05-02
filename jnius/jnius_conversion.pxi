@@ -89,15 +89,17 @@ cdef void populate_args(JNIEnv *j_env, tuple definition_args, jvalue *j_args, ar
             if py_arg is None:
                 j_args[index].l = NULL
                 continue
-            if isinstance(py_arg, basestring):
+            if isinstance(py_arg, basestring) and PY_MAJOR_VERSION < 3:
                 if argtype == '[B':
                     py_arg = map(ord, py_arg)
                 elif argtype == '[C':
                     py_arg = list(py_arg)
+            if isinstance(py_arg, str) and PY_MAJOR_VERSION >= 3 and argtype == '[C':
+                py_arg = list(py_arg)
             if isinstance(py_arg, ByteArray) and argtype != '[B':
                 raise JavaException(
                     'Cannot use ByteArray for signature {}'.format(argtype))
-            if not isinstance(py_arg, (list, tuple, ByteArray)):
+            if not isinstance(py_arg, (list, tuple, ByteArray, bytes)):
                 raise JavaException('Expecting a python list/tuple, got '
                         '{0!r}'.format(py_arg))
             j_args[index].l = convert_pyarray_to_java(
@@ -379,7 +381,7 @@ cdef jobject convert_python_to_jobject(JNIEnv *j_env, definition, obj) except *:
                 long: 'J',
                 float: 'F',
                 str: 'Ljava/lang/String;',
-                bytearray: 'B'
+                bytes: 'B'
             }
         retclass = j_env[0].FindClass(j_env, 'java/lang/Object')
         retobject = j_env[0].NewObjectArray(j_env, len(obj), retclass, NULL)
@@ -470,7 +472,7 @@ cdef jobject convert_pyarray_to_java(JNIEnv *j_env, definition, pyarray) except 
                 bool: 'Z',
                 long: 'J',
                 float: 'F',
-                bytearray: 'B',
+                bytes: 'B',
                 str: 'Ljava/lang/String;',
             }
         for _type, override in conversions.iteritems():

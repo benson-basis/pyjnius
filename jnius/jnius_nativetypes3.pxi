@@ -47,9 +47,18 @@ cdef class ByteArray:
     def __len__(self):
         return self._size
 
-    # TODO: py3 calls this with a slice from tolist below....
-    def __getitem__(self, long index):
-        return self._arr[index]
+    def __getitem__(self, index):
+        cdef long xx
+        if isinstance(index, slice):
+            val = []
+            (start, stop, step) = index.indices(len(self._arr))
+            for x in range(start, stop, step):
+                xx = x
+                val.append(self._arr[xx])
+            return val
+        else:
+            xx = index
+            return self._arr[xx]
 
     def __richcmp__(self, other, op):
         cdef ByteArray b_other
